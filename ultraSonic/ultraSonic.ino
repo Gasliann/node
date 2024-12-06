@@ -1,62 +1,44 @@
 #include <Arduino.h>
 
-#define TRIG_PIN 5   // Pin TRIG del sensor conectado al pin 5 del ESP32
-#define ECHO_PIN 18  // Pin ECHO del sensor conectado al pin 18 del ESP32
+#define TRIG_PIN 5  // Pin TRIG del sensor conectado al pin 5 del ESP32
+#define ECHO_PIN 18 // Pin ECHO del sensor conectado al pin 18 del ESP32
 
 unsigned long startTime;
 unsigned long endTime;
 unsigned long latency;
-
-unsigned long receivedDataCount = 0;  // Contador de datos recibidos
-unsigned long lostDataCount = 0;      // Contador de datos perdidos
-
-unsigned long lastTime = 0;
-unsigned long interval = 5000;  // Intervalo de 5 segundos para imprimir resultados
+long duracion;
+int distancia;
 
 void setup() {
-  Serial.begin(115200); // Inicializa la comunicación serial
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
+  Serial.begin(115200);  // Inicializa la comunicación serial
+  pinMode(TRIG_PIN, OUTPUT);  // Define el pin TRIG como salida
+  pinMode(ECHO_PIN, INPUT);  // Define el pin ECHO como entrada
 }
 
 void loop() {
-  unsigned long currentMillis = millis(); // Tiempo actual
-
-  // Mide la latencia de la lectura del sensor ultrasónico
-  startTime = micros();
+  // Envía un pulso de 10 microsegundos al pin TRIG
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG_PIN, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  long duration = pulseIn(ECHO_PIN, HIGH);
-  endTime = micros();
+  startTime = micros();  // Captura el tiempo de inicio
+  duracion = pulseIn(ECHO_PIN, HIGH);  // Mide la duración del pulso en el pin ECHO
+  endTime = micros();  // Captura el tiempo al final de la medición
 
-  if (duration > 0) {
-    // Si se recibe una duración válida, se considera que un dato ha sido recibido
-    receivedDataCount++;
-  } else {
-    // Si no se recibe una duración válida, se cuenta como un dato perdido
-    lostDataCount++;
-  }
+  // Calcula la distancia en centímetros
+  distancia = duracion * 0.034 / 2;
 
-  latency = endTime - startTime;  // Calcula la latencia en microsegundos
+  latency = endTime - startTime;  // Calcula la latencia de la lectura
 
-  // Imprime los datos cada 5 segundos
-  if (currentMillis - lastTime >= interval) {
-    lastTime = currentMillis; // Actualiza el tiempo de la última impresión
-    Serial.print("Datos recibidos: ");
-    Serial.println(receivedDataCount);
-    Serial.print("Datos perdidos: ");
-    Serial.println(lostDataCount);
-    Serial.print("Latencia: ");
-    Serial.print(latency);  // Muestra la latencia
-    Serial.println(" µs");
-  }
+  // Imprimir los resultados
+  Serial.print("Distancia (cm): ");
+  Serial.print(distancia);
+  Serial.print(" | Latencia: ");
+  Serial.print(latency);
+  Serial.println(" µs");
 
-  // Pausa corta antes de la siguiente medición
-  delay(100);
+  delay(500);  // Retardo para evitar lecturas continuas sin espacio
 }
-
 

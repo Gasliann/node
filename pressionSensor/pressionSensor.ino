@@ -1,35 +1,37 @@
 #include <Arduino.h>
 
-// Configuración del Sensor de Presión (Analógico)
-const int pressureInput = 4;  // Pin analógico de presión
-const float pressureZero = 446.4;  // Lectura ADC para 0 PSI (ajustar según tus mediciones)
-const float pressureMax = 921.6;  // Lectura ADC para 100 PSI (ajustar según tus mediciones)
-const float pressureTransducerMaxPSI = 100.0;  // Máxima presión del sensor en PSI
+const int pressureInput = 4; 
+const float pressureZero = 432.0; // Lectura ADC para 0 psi (ajustar según pruebas)
+const float pressureMax = 921.6; // Lectura ADC para 100 psi (ajustar según pruebas)
+const float pressureTransducerMaxPsi = 100; // Presión máxima en PSI
 
-unsigned long pressureStartTime;
-unsigned long pressureEndTime;
-unsigned long pressureLatency;
+unsigned long startTime;
+unsigned long endTime;
+unsigned long latency;
+
+int pressure = 0;
 
 void setup() {
-  Serial.begin(115200);  
-  pinMode(pressureInput, INPUT); 
+  Serial.begin(115200);  // Inicializa la comunicación serial
 }
 
 void loop() {
-  pressureStartTime = micros();
-  float pressureReading = analogRead(pressureInput); 
-  pressureEndTime = micros();
-  pressureLatency = pressureEndTime - pressureStartTime;
+  startTime = micros();  // Captura el tiempo de inicio
+  pressure = analogRead(pressureInput);  // Lee el valor analógico del sensor
+  endTime = micros();  // Captura el tiempo al final de la lectura
 
-  float pressurePSI = (pressureReading - pressureZero) * pressureTransducerMaxPSI / (pressureMax - pressureZero);
-  if (pressurePSI < 0) pressurePSI = 0;
+  // Calcular presión en PSI (ajustar según el sensor)
+  float pressurePsi = (pressure - pressureZero) * pressureTransducerMaxPsi / (pressureMax - pressureZero);
 
-    Serial.print("Lectura: ");
-    Serial.print(pressurePSI);
-    Serial.println(" Psi");
-    Serial.print("Latencia de lectura: ");
-    Serial.print(pressureLatency);
-    Serial.println(" µs");
+  latency = endTime - startTime;  // Calcular la latencia de la lectura
+  
+  // Imprimir los resultados
+  Serial.print("Presión (PSI): ");
+  Serial.print(pressurePsi);
+  Serial.print(" | Latencia: ");
+  Serial.print(latency);
+  Serial.println(" µs");
 
-  delay(500)
+  delay(500);  // Retardo para evitar lecturas continuas sin espacio
 }
+
